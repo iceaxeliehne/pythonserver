@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My Test</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://rawgit.com/allensarkisyan/VideoFrame/master/VideoFrame.min.js"></script>
+    <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+    <script src="https://huningxin.github.io/opencv.js/build/asm.js/opencv.js" ></script>
+</head>
+
+<body>
+    <h1>Hello my test</h1>
+    <div id="container">
+    <canvas id="canvasOutput"></canvas>
+    <video autoplay="true" id="videoElement"></video>
+</div>
+
+<div class = 'video'>
+    <img id="image">
+</div>
+
+<script>
+    var socket = io.connect('https://5000-crimson-canid-71sm3425.ws-us03.gitpod.io');
+    console.log("connecting");
+    socket.on('connect', function(){
+        console.log("Connected...!", socket.connected)
+    });
+
+    socket.on('error', (error) => {
+        console.log('Error! ' + error);
+    });
+
+    const video = document.querySelector("#videoElement");
+
+    video.width = 500; 
+    video.height = 375; 
+
+    function capture(video, scaleFactor) {
+        if(scaleFactor == null){
+            scaleFactor = 1;
+        }
+        var w = video.videoWidth * scaleFactor;
+        var h = video.videoHeight * scaleFactor;
+        var canvas = document.createElement('canvas');
+            canvas.width  = w;
+            canvas.height = h;
+        var ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, w, h);
+        return canvas;
+    } 
+
+    if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function (stream) {
+            video.srcObject = stream;
+            video.play();
+        })
+        .catch(function (err0r) {
+            console.log(err0r)
+            console.log("Something went wrong!");
+        });
+    }
+
+    // let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+    // let dst = new cv.Mat(video.height, video.width, cv.CV_8UC1);
+    // let cap = new cv.VideoCapture(video);
+
+    const FPS = 22;
+
+    setInterval(() => {
+        //cap.read(src);
+        console.log("tic");
+        var type = "image/png"
+        //var data = document.getElementById("canvasOutput").toDataURL(type);
+        var video_element = document.getElementById("videoElement")
+        var frame = capture(video_element, 1)
+        var data = frame.toDataURL(type);
+        data = data.replace('data:' + type + ';base64,', ''); //split off junk at the beginning
+        //console.log(socket);
+        socket.emit('image', data);
+    }, 10000/FPS);
+
+
+    socket.on('response_back', function(image){
+        const image_id = document.getElementById('image');
+        image_id.src = image;
+    });
+
+</script>
+
+     <!-- <device type="media" onchange="update(this.data)"></device>
+    <video autoplay style="display:none;" id="video"></video>
+    <canvas style="display:none;" id="preview"></canvas>
+    <div id="logger"></div> -->
+    <!-- <canvas id="preview"></canvas> -->
+    <!-- <img id="play"> -->
+    
+    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    <!-- <script> -->
+        <!-- // socket= new WebSocket('https://3000-crimson-canid-71sm3425.ws-us03.gitpod.io/');
+        // console.log(socket);
+        // socket.onopen= function() {
+        //     socket.send('hello');
+        // };
+        // socket.onmessage= function(s) {
+        //     alert('got reply '+s);
+        // };
+        // var canvas = document.getElementById("preview");
+        // var context = canvas.getContext("2d");
+
+        // canvas.width = 320;
+        // canvas.height = 240;
+
+        // context.width = canvas.width;
+        // context.height = canvas.height;
+
+        // var video = document.getElementById("video");
+        // var img = document.getElementById("play");
+        // // var socket = io();
+        // const constraints = {
+        //     video: true,
+        // };
+
+        // // socket.on('player', function (image) {
+        // //     console.log("player recieved");
+        // //     img.src = image;
+        // //     //$('#log').text(image);
+        // // });
+
+        // function logger(msg) {
+        //     $("#logger").text(msg);
+        // }
+
+        // function loadCam(stream) {
+        //     video.src = window.URL.createObjectURL(stream);
+        //     logger('camara cargada correctamente [OK]');
+        // }
+
+        // function loadFail() {
+        //     logger('Camara no encontrada, revise la camara');
+        // }
+
+        // function viewVideo(video, context) {
+        //     context.drawImage(video, 0, 0, context.width, context.height);
+            
+        //     // socket.emit('myStream', canvas.toDataURL('image/webp'));
+        // }
+
+        // $(function () {
+        //     // navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msgGetUserMedia);
+        //     // if (navigator.getUserMedia) {
+        //     //     navigator.getUserMedia({ video: true }, loadCam, loadFail);
+        //     // }
+        //     navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+        //         video.srcObject = stream;
+        //     });
+        //     setInterval(function () {
+        //         viewVideo(video, context);
+        //     }, 120);
+        // });
+
+        
+
+
+
+
+        // // var socket = io();
+        // // const constraints = {
+        // //     video: true,
+        // // };
+
+        // // var canvas = document.getElementById("preview");
+        // // var context = canvas.getContext('2d');
+        // // canvas.width = 900;
+        // // canvas.height = 700;
+
+        // // context.width = canvas.width;
+        // // context.height = canvas.height;
+
+        // // const video = document.querySelector("video");
+
+
+        // // navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+        // //     video.srcObject = stream;
+        // //     //socket.emit('stream',stream);
+        // //     setInterval(function(){
+        // //         Draw(video,context,socket);
+        // //     },0.1);
+        // // });
+
+        // // function Draw(video,context,socket){
+        // //     context.drawImage(video,0,0,context.width,context.height);
+        // //     console.log('frame draw');
+        // //     socket.emit('myStream',canvas.toDataURL('image/webp'));
+        // // } -->
+
+
+
+
+
+    <!-- </script>  -->
+</body>
+
+</html>
